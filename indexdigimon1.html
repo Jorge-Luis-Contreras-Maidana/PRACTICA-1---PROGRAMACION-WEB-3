@@ -1,0 +1,162 @@
+
+
+<!-- CONTRERAS MAIDANA JORGE LUIS -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Digimon</title>
+  <style>
+  body {
+    font-family: sans-serif;
+    background-color: lavender;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    color: darkblue;
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+
+  input, select {
+    padding: 5px;
+    margin-bottom: 10px;
+    width: 200px;
+  }
+
+  button {
+    padding: 6px 12px;
+    margin-right: 5px;
+    background-color: skyblue;
+    border: 1px solid gray;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: deepskyblue;
+    color: white;
+  }
+
+  table {
+    margin: 20px auto;
+    width: 80%;
+    border-collapse: collapse;
+    background-color: white;
+  }
+
+  th, td {
+    border: 1px solid lightgray;
+    padding: 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: cornflowerblue;
+    color: white;
+  }
+
+  tr:hover {
+    background-color: aliceblue;
+  }
+</style>
+
+  
+</head>
+<body>
+    
+  <h1>LISTADO DE DIGIMONES</h1>
+
+  <label>Buscar por nombre:</label>
+  <input type="text" id="nombre" placeholder="Introduce digimos a buscar">
+  <button onclick="buscarPorNombre()">Buscar</button>
+
+  <label>Filtro por nivel:</label>
+  <select id="nivel">
+    <option value="">Selecciona nivel</option>
+  </select>
+  <button onclick="buscarPorNivel()">Filtrar</button>
+
+  <button onclick="mostrarTodos()">Todos</button>
+
+  <table id="tablaDigimon">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Nivel</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const tabla = document.querySelector("#tablaDigimon tbody");
+    const nivelSelect = document.getElementById("nivel");
+    let todosLosDigimon = [];
+
+    function mostrarTabla(data) {
+      tabla.innerHTML = "";
+ 
+      if (Array.isArray(data)) {
+        for (const d of data) {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `<td>${d.name}</td><td>${d.level}</td>`;
+          tabla.appendChild(fila);
+        }
+      } else if (data && data.Error) {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `<td colspan="2">No se encontró el Digimon.</td>`;
+        tabla.appendChild(fila);
+      }
+    }
+
+    function llenarFiltroNivel(data) {
+        const levels = Array.from(new Set(data.map(d => d.level))).sort();
+        
+        for (const level of levels) {
+            const opt = document.createElement("option");
+            opt.value = level;
+            opt.textContent = level;
+            nivelSelect.appendChild(opt);
+        }
+    }
+
+    async function mostrarTodos() {
+      const res = await fetch("https://digimon-api.vercel.app/api/digimon");
+      const data = await res.json();
+      
+      if (todosLosDigimon.length === 0 && Array.isArray(data)) {
+        todosLosDigimon = data;
+        llenarFiltroNivel(data);
+      }
+      
+      mostrarTabla(data);
+    }
+
+    async function buscarPorNombre() {
+      const nombre = document.getElementById("nombre").value.trim();
+      if (!nombre) return alert("Ingresa un nombre");
+      const res = await fetch(`https://digimon-api.vercel.app/api/digimon/name/${nombre}`);
+      const data = await res.json();
+      mostrarTabla(data);
+    }
+
+    async function buscarPorNivel() {
+      const nivel = document.getElementById("nivel").value;
+      if (!nivel) return alert("Selecciona un nivel");
+      const res = await fetch(`https://digimon-api.vercel.app/api/digimon/level/${nivel}`);
+      const data = await res.json();
+      mostrarTabla(data);
+    }
+
+    mostrarTodos();
+  </script>
+</body>
+</html>
